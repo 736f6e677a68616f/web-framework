@@ -1,21 +1,13 @@
-fn main() {
-}
-fn spiral_matrix(m: i32, n: i32, head: Option<Box<ListNode>>) -> Vec<Vec<i32>> {
+use axum::{routing::get, Router};
 
-}
-
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct ListNode {
-  pub val: i32,
-  pub next: Option<Box<ListNode>>
+#[tokio::main]
+async fn main(){
+    let app = Router::new().route("/", get(handler));
+    let addr = "127.0.0.1:8080";
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 }
 
-impl ListNode {
-  #[inline]
-  fn new(val: i32) -> Self {
-    ListNode {
-      next: None,
-      val
-    }
-  }
+async fn handler() -> &'static str {
+    "hello world"
 }
