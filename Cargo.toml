@@ -8,5 +8,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.82"
 axum = "0.7.5"
+random = "0.14.0"
+redis = { version = "0.25.3", features = ["tokio-comp", "json"] }
 serde = "1.0.197"
-tokio = { version = "1.37.0", features = ["full"] }
+tokio = { version = "1.37.0", features = ["full", "rt", "macros"] }
