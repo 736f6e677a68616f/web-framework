@@ -1,0 +1,6 @@
+mysql = [
+    {host = "192.168.10.238", user = "root", db= "", password = "123456", db_list = [
+            "hxddz_pay2",
+            "authic"
+        ]}
+]
