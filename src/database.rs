@@ -23,13 +23,14 @@ impl DB {
             mysql: connect_mysql(&config.mysql.unwrap()) 
         }
     }
-    pub fn exec_sql<T>(&mut self, db_name: &str, sql: &str) -> Result<Vec<T>>
+    pub fn exec_sql<T, U, F>(&mut self, db_name: &str, sql: &str, f: F) -> Result<Vec<U>>
     where
-        T: FromRow
+        T: FromRow,
+        F: FnMut(T) -> U
     {
         if let Some(mysql) = self.mysql.as_mut() {
             if let Some(conn) = mysql.get_mut(db_name) {
-                let result = conn.query(sql).unwrap();
+                let result = conn.query_map(sql, f).unwrap();
                 return Ok(result);
             }
         }
