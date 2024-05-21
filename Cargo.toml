@@ -10,6 +10,7 @@ anyhow = "1.0.82"
 axum = "0.7.5"
 mysql = "25.0.0"
 random = "0.14.0"
+redis = "0.25.3"
 serde = { version = "1.0.197", features = ["derive"] }
 tokio = { version = "1.37.0", features = ["full"] }
 toml = "0.8.12"

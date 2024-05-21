@@ -5,7 +5,6 @@ use std::sync::{Mutex, OnceLock};
 use database::DB;
 static MS: OnceLock<Mutex<Ms>> = OnceLock::new();
 
-#[derive(Debug)]
 struct Ms {
     db: DB
 }

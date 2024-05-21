@@ -4,23 +4,24 @@ use std::io::Read;
 use std::panic::panic_any;
 
 use anyhow::{Error, Result};
+use redis::Connection;
 use serde::Deserialize;
 use mysql::*;
 use mysql::prelude::*;
 
 const CONFIG_FILE_PATH: &str = "./database.toml";
-
-#[derive(Debug)]
+#[allow(dead_code)]
 pub struct DB {
-    mysql: Option<HashMap<String, Conn>>
-    // redis: Option<HashMap<String, u8>>,
+    mysql: Option<HashMap<String, Conn>>,
+    redis: Option<HashMap<String, Connection>>,
 }
 
 impl DB {
     pub fn init() -> Self {
         let config = get_config();
         Self {
-            mysql: connect_mysql(&config.mysql.unwrap()) 
+            mysql: connect_mysql(&config.mysql.unwrap()),
+            redis: connect_redis(&config.redis.unwrap()) 
         }
     }
     pub fn exec_sql<T, U, F>(&mut self, db_name: &str, sql: &str, f: F) -> Result<Vec<U>>
@@ -41,7 +42,8 @@ impl DB {
 
 #[derive(Debug, Deserialize)]
 struct Config {
-    mysql : Option<Vec<MysqlConnInfo>>
+    mysql : Option<Vec<MysqlConnInfo>>,
+    redis : Option<Vec<RedisConnInfo>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -76,12 +78,12 @@ fn read_config() -> Result<Config> {
     Ok(toml::from_str(&s).unwrap())
 }
 
-fn connect_mysql(mysql_infos: &Vec<MysqlConnInfo>) -> Option<HashMap<String, Conn>> {
-    if mysql_infos.len() == 0 {
+fn connect_mysql(mysql_info: &Vec<MysqlConnInfo>) -> Option<HashMap<String, Conn>> {
+    if mysql_info.len() == 0 {
         return None;
     }
     let mut conns = HashMap::new();
-    for item in mysql_infos {
+    for item in mysql_info {
         //没有数据库需要连接
         if item.db_list.len() == 0 {
             continue;
@@ -98,11 +100,27 @@ fn connect_mysql(mysql_infos: &Vec<MysqlConnInfo>) -> Option<HashMap<String, Con
     Some(conns)
 }
 
+fn connect_redis(redis_info: &Vec<RedisConnInfo>) -> Option<HashMap<String, Connection>> {
+    if redis_info.len() == 0 {
+        return None;
+    }
+    let mut conns = HashMap::new();
+    for item in redis_info {
+        //没有数据库需要连接
+        if item.db_list.len() == 0 {
+            continue;
+        }
+        for db_name in &item.db_list {
+            let url = format!("redis://{}:{}@{}:{}/{}", item.user, item.password, item.host, item.port, item.db);
+            conns.insert(db_name.to_string(), redis::Client::open(url).unwrap().get_connection().unwrap());
+        }
+    }
+    Some(conns)
+}
+
+#[allow(dead_code)]
 pub fn init() {
-    let mut db = DB {  mysql: None};
-    let config = get_config();
-    db.mysql = connect_mysql(&config.mysql.unwrap());
-    // db.redis = connect_mysql
+    DB::init();
 }
 
 #[cfg(test)]
